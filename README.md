@@ -1,105 +1,99 @@
-# my-node-app
+# my-go-app
 
-Учебный проект с CI на GitHub Actions для Node.js-приложения.
+Учебный проект с CI на GitHub Actions для Go-приложения.
 
 ## 📌 Цель работы
 
-Настроить CI для Node.js-проекта с автоматической проверкой кода, тестами и сборкой Docker-образа.
+Настроить CI для Go-проекта с линтингом, тестами, покрытием и сборкой Docker-образа.
 
 ## 🎯 Что делает CI
 
 При каждом push/PR автоматически:
 
-- **Линтинг** (ESLint) — проверка кода на ошибки
-- **Тесты** (Jest) — запуск unit-тестов
-- **Сборка Docker-образа** — без публикации
+- **Линтинг** (golangci-lint)
+- **Тесты** (`go test` с покрытием)
+- **Сохранение coverage-отчёта** как артефакта
+- **Сборка Docker-образа** (без публикации)
 
 ## 📂 Структура проекта
 
 ```
-my-node-app/
+my-go-app/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml            # GitHub Actions workflow
-├── src/
-│   └── index.js              # основной код
-├── tests/
-│   └── index.test.js         # тесты (Jest)
-├── package.json              # зависимости и скрипты
-├── package-lock.json         # фиксация версий
-├── .eslintrc.json            # конфигурация ESLint
+│       └── ci.yml
+├── main.go
+├── sum.go
+├── sum_test.go
 ├── Dockerfile
+├── go.mod
+├── go.sum
 └── README.md
 ```
 
-## 🟩 Основной код
+## 🟦 Основной код
 
-```javascript
-function add(a, b) {
-    return a + b;
+**`sum.go`:**
+```go
+package main
+
+func Sum(a, b int) int {
+    return a + b
 }
-function main() {
-    console.log("Hello from Node.js app!");
+```
+
+**`main.go`:**
+```go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello from Go app!")
+    fmt.Println("2 + 3 =", Sum(2, 3))
 }
-if (require.main === module) {
-    main();
-}
-module.exports = { add };
 ```
 
 ## 🚀 Запуск локально
 
-### Через Docker (рекомендуется)
+### Через Docker
 
 ```bash
-docker build -t my-node-app:latest .
-docker run --rm my-node-app:latest
+docker build -t my-go-app:latest .
+docker run --rm my-go-app:latest
 ```
 
-### Без Docker (нужен Node.js 18+)
+Ожидаемый вывод:
+```
+Hello from Go app!
+2 + 3 = 5
+```
+
+### Тесты через Docker
 
 ```bash
-npm ci
-npm run lint
-npm test
-node src/index.js
+docker run --rm -v "$(pwd):/app" -w /app golang:1.22-alpine go test ./...
 ```
 
 ## 📸 Результат запуска
 
-Ниже — вывод приложения в терминале после сборки и запуска Docker-контейнера:
-
-![Вывод приложения в терминале](/img/terminal.png)
-
-```
-Hello from Node.js app!
-```
-
-## ⚙️ CI Workflow
-
-Workflow запускается на **3 версиях Node.js** (18.x, 20.x, 22.x) параллельно:
-
-- Node.js 18.x
-- Node.js 20.x
-- Node.js 22.x
-
-После успешных тестов запускается job сборки Docker-образа.
+![Вывод приложения](terminal.png)
 
 ## ✅ Результат
 
-При каждом push в ветку `main` запускается CI.
-На вкладке **Actions** отображаются 🟢 зелёные галочки — все проверки пройдены успешно.
+При каждом push в `main` запускается CI.
+На вкладке **Actions** отображаются 🟢 зелёные галочки.
 
 **Ссылка на Actions:**  
-https://github.com/xem1zo/my-node-app/actions
+https://github.com/xem1zo/my-go-app/actions
 
 ## 📝 Вывод
 
 В ходе работы я освоил:
 
-- Настройку CI для Node.js-проектов в GitHub Actions
-- Использование matrix strategy для тестирования на нескольких версиях Node.js
-- Линтинг кода через ESLint
-- Тестирование через Jest
-- Сборку Docker-образа в CI без публикации
-- Генерацию `package-lock.json` через Docker без локальной установки Node.js
+- Настройку CI для Go-проектов в GitHub Actions
+- Линтинг через golangci-lint
+- Тестирование с покрытием (coverage)
+- Сохранение артефактов (upload-artifact)
+- Сборку Docker-образа в CI
+- Работу с Go-модулями через Docker без установки Go
